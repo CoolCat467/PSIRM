@@ -51,7 +51,7 @@ def write_int(integer: int) -> bytes:
 class ImageMetadata:
     "Image metadata class"
     data: bytearray
-    
+
     @property
     def name(self) -> str:
         "File name"
@@ -60,7 +60,7 @@ class ImageMetadata:
     def name(self, value: str) -> None:
         for idx, byte in enumerate(write_string(value, 48)):
             self.data[idx] = byte
-    
+
     @staticmethod
     def __int_field(offset: int, doc: str) -> property:
         def get_v(self: 'ImageMetadata') -> int:
@@ -71,7 +71,7 @@ class ImageMetadata:
             for idx, byte in enumerate(write_int(value)):
                 self.data[offset+idx] = byte
         return property(get_v, set_v, None, doc)
-    
+
     width_low     = __int_field(48, 'Width of low')
     width_high    = __int_field(52, 'Width of high')
     length_low    = __int_field(64, 'Length of low')
@@ -96,7 +96,7 @@ class ImageMetadata:
         attrtype = ('low', 'high')[rtype%2]
         for name, value in zip(('off', 'size'), dimensions):
             setattr(self, f'{name}_{attrtype}', value)
-    
+
     def get_position(self, rtype: int) -> tuple[int, int]:
         "Get position (offset, size)"
         attrtype = ('low', 'high')[rtype%2]
@@ -214,13 +214,13 @@ def pack_resources(save_folder: str, resource_base_folder: str) -> None:
     metadata = unpack_index(os.path.join(save_folder, 'IconResources.idx'))
     files = tuple(cast(str, next(metadata)) for _ in range(4))
 
+    index = os.path.join(save_folder, 'modified', 'IconResources.idx')
+    ensure_path_exists(index)
+
     for rtype in range(2):
         filename = os.path.join(save_folder, 'modified', files[rtype])
         with open(filename, 'wb') as file:
             file.write(b'fdra')
-    
-    index = os.path.join(save_folder, 'modified', 'IconResources.idx')
-    ensure_path_exists(index)
 
     def write_png(png_filename: str,
                   length: int,
@@ -259,7 +259,7 @@ def pack_resources(save_folder: str, resource_base_folder: str) -> None:
                 if size:
                     metadata.set_dimensions(0, get_png_dimensions(png_filename))
                     metadata.set_position(0, (offset, size))
-        
+
         with open(os.path.join(save_folder, 'modified', files[1]), 'wb') as resource:
             for offset in sorted(offsets_high):
                 cur_offset = resource.tell()
@@ -273,7 +273,7 @@ def pack_resources(save_folder: str, resource_base_folder: str) -> None:
                     metadata.set_dimensions(1, get_png_dimensions(png_filename))
                     metadata.set_position(1, (offset, size))
         return metas
-    
+
     pack_index(
         index,
         (
